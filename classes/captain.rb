@@ -23,10 +23,10 @@ class Captain
 
 		#Set each skill to 0
 		self.skills = {
-			"gunnery" => 0,
-			"evasion" => 0,
-			"repair" => 0,
-			"intelligence" => 0
+			"Gunnery" => 0,
+			"Rvasion" => 0,
+			"Repair" => 0,
+			"Intelligence" => 0
 		}
 		
 		#Set the number of skill points the captain has

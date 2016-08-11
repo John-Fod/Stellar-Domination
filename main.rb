@@ -1,6 +1,7 @@
 require_relative "classes/captain"
 require_relative "classes/ship"
 require_relative "classes/state"
+require_relative "classes/attack"
 
 
 
