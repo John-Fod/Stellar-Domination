@@ -34,6 +34,10 @@ class Ship
 		end
 	end
 
+	def queue_move move_queue_array
+
+	end
+
 	def take_damage(attack_damage = 0)
 		if(self.sheild_integrity > 0)
 			self.sheild_integrity = self.sheild_integrity - attack_damage

@@ -10,6 +10,12 @@ require_relative "captain"
 class State
 	attr_accessor :turn_number, :player, :ai, :game_over
 
+	@@pending_actions = []
+
+	@@approach_moves = []
+	@@pass_moves = []
+	@@parting_moves = []
+
 	@@pending_attacks = []
 	@@pending_heals = []
 	@@pending_status_effects = []
@@ -84,18 +90,19 @@ class State
 	#Attack
 	def attack
 		next_attack = nil
+		#-- Get the attack that is to be made
 		while next_attack == nil
 			puts "FIRST MATE: How shall we attack ".ljust(30, "-")
+			puts "*To cancel attack, give the command 'back'"
 			self.player.ship.show_attacks
-			attack_type = gets.chomp
-			if self.player.ship.class.available_attacks.include? attack_type
-				next_attack = Object.const_get("#{attack_type.delete(' ')}").new(self.player.ship, self.ai.ship)
-				@@pending_attacks.push(next_attack)
-				puts "FIRST MATE: Roger that captain, preparing #{next_attack.class.stats['name']} attack."
+			command = gets.chomp
+			if command == "back"
+				return
 			else
-				puts "FIRST MATE: Sorry captain, this ship is not capable of that type of attack."
+				next_attack = create_attack(self.player.ship, self.ai.ship, command)
 			end
 		end
+		queue_action(next_attack, @@pending_actions)
 	end
 
 	#------------------
@@ -105,29 +112,58 @@ class State
 		puts "---------------------------------------------\n"
 		puts "As your ships approach each other in orbit..."
 
-		#-----Do the status effects
-		@@pending_status_effects.each do |effect|
-
-		end
-
-		#-----Do the heals
-		@@pending_heals.each do |heal|
-
-		end
-
 		#-----Do the attacks
-		@@pending_attacks.each do |attack|
-			if attack.lifespan > 0
-				#Give a message for the attack you are doing
-				puts "#{attack.origin.name} attacks #{attack.target.name} with a #{attack.name.downcase}."
-				attack.perform
+		@@pending_actions.each do |action|
+			if action.lifespan > 0
+				#Give a message for the action you are doing
+				puts "#{action.origin.name} performs a #{action.name.downcase} on #{action.target.name}."
+				action.perform
 				puts "#{'damage'.ljust(12)}|#{'healing'.ljust(12)}"
-				puts "#{attack.damage.to_s.ljust(12)}|#{attack.heal.to_s.ljust(12)}"
+				puts "#{action.damage.to_s.ljust(12)}|#{action.heal.to_s.ljust(12)}"
 			end
 		end
 
 		self.ships
 
+	end
+
+
+	#----------------------------------------------------------------
+	#Queue Action
+	#--DESCRIPTION: This adds an action to the array of actions 
+	#--  to perform this turn
+	#--INPUT:
+	#--  action: The action to perform, can be [Attack, Heal]
+	#--  action_queue: The array to store the action in [array]
+	def queue_action(action, action_queue)
+		action_queue.push(action)
+		action.origin.energy = action.origin.energy - action.class.stats['energy_cost']
+	end
+
+
+	#----------------------------------------------------------------
+	#CREATE ATTACK
+	#--DESCRIPTION: This creates an [Attack, Heal] object if
+	#--  the ship is capable of such an action and if the ship
+	#--  has enough resources [energy] to do so
+	#--INPUT:
+	#--  origin: The origin of the action [ship]
+	#--  target: The target of the action [ship]
+	#--  attack_type: The name of the action to take [string]
+	def create_attack(origin, target, attack_type)
+		if origin.class.available_attacks.include? attack_type
+			if origin.energy >= Object.const_get("#{attack_type.delete(' ')}").stats['energy_cost']
+				next_attack = Object.const_get("#{attack_type.delete(' ')}").new(origin, target)
+				puts "FIRST MATE: Roger that captain, preparing #{attack_type}"
+				return next_attack
+			else
+				puts "FIRST MATE: Sorry captain, we do not have enough energy for a #{attack_type}"
+				return nil
+			end
+		else
+			puts "FIRST MATE: Sorry captain, this ship is not capable of that type of attack."
+			return nil
+		end
 	end
 
 end

@@ -36,6 +36,11 @@ class Attack
 end
 
 
+#Broadside
+#----  This attack fires every cannon on
+#----the ship at close range. The rusult
+#----is an increase in accuracy, but a
+#----long delay.
 class Broadside < Attack
 
 	@@stats = {
@@ -53,16 +58,14 @@ class Broadside < Attack
 	end
 
 	def perform
-		self.drain_energy
 
 		#----Make the attack
-		if self.target.sheild_integrity > 0
-			self.target.sheild_integrity = self.target.sheild_integrity - self.damage
-			puts "#{self.origin.name} hits the shields of #{self.target.name} for #{self.damage} damage."
-		else
-			self.target.hull_integrity = self.target.hull_integrity - self.damage
-			puts "#{self.origin.name} hits the hull of #{self.target.name} for #{self.damage} damage."
+		i = 0
+		while i < self.origin.class.stats['cannon_count']
+			self.fire_cannon(0.1, 0)
+			i = i + 1
 		end
+
 
 		self.lifespan = self.lifespan - 1
 
